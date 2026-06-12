@@ -78,12 +78,3 @@ class Model:
             {"query": self.queries[i], "score": float(scores[i])}
             for i in top_idx
         ]
-
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        state.pop("model", None)
-        return state
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self.model = SentenceTransformer(self.model_name)
