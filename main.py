@@ -6,8 +6,6 @@ import json
 with open("test/cats.json", "r") as file:
     data = json.load(file)
 
-engine_filename = 'engine-cat.pkl'
-
 model = Model("all-MiniLM-L6-v2", local_folder_path='./local')
 engine = Engine(model.encode)
 engine.add(data["documents"])

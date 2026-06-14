@@ -5,17 +5,19 @@ import argparse
 from src.engine import Engine
 from src.model import Model
 
-DEFAULT_DB_FILE = "engine-loca.pkl" 
+DEFAULT_DB_FILE = "engine-local.pkl" 
 
 def load_engine(filename):
+    model = Model("all-MiniLM-L6-v2", local_folder_path='./local')
+    
     if os.path.exists(filename):
         print(f"Found engine file: {filename}")
         with open(filename, "rb") as f:
-            return pickle.load(f)
+            engine = pickle.load(f)
+        engine.encodeFunction = model.encode
+        return engine
     else:
         print(f"Found no engine file: {filename}. Initializing new model and engine...")
-        model = Model("all-MiniLM-L6-v2", local_folder_path='./local')
-
         return Engine(model.encode)
 
 
