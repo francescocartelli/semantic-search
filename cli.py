@@ -1,40 +1,41 @@
 import os
 import pickle
 import argparse
-from model import Model
 
-DEFAULT_DB_FILE = "local.pkl"
+from src.engine import Engine
+from src.model import Model
 
+DEFAULT_DB_FILE = "engine-loca.pkl" 
 
-def load_model(filename):
+def load_engine(filename):
     if os.path.exists(filename):
-        print(f"found model file: {filename}")
-
+        print(f"Found engine file: {filename}")
         with open(filename, "rb") as f:
             return pickle.load(f)
     else:
-        print(f"found no model file: {filename}")
+        print(f"Found no engine file: {filename}. Initializing new model and engine...")
+        model = Model("all-MiniLM-L6-v2", local_folder_path='./local')
 
-        return Model(model_name="all-MiniLM-L6-v2")
+        return Engine(model.encode)
 
 
-def save_model(model, filename):
+def save_engine(engine, filename):
     with open(filename, "wb") as f:
-        pickle.dump(model, f)
+        pickle.dump(engine, f)
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "model_file",
+        "engine_file",
         nargs="?",
         default=DEFAULT_DB_FILE,
         help=f"Pickle file to load/save (default: {DEFAULT_DB_FILE})",
     )
     args = parser.parse_args()
 
-    model_file = args.model_file
-    model = load_model(model_file)
+    engine_file = args.engine_file
+    engine = load_engine(engine_file)
 
     print("\nCommands:")
     print("  add <text>")
@@ -57,15 +58,17 @@ def main():
             action = parts[0].lower()
 
             if action == "add" and len(parts) > 1:
-                model.add(parts[1])
+                engine.add([parts[1]]) 
+                print(f"Added: '{parts[1]}'")
 
             elif action == "remove" and len(parts) > 1:
-                model.remove(parts[1])
+                engine.remove(parts[1])
+                print(f"Removed: '{parts[1]}'")
 
             elif action == "search" and len(parts) > 1:
-                results = model.search(parts[1], top_k=10)
+                results = engine.search(parts[1], top_k=10)
                 print(f"Searching for: '{parts[1]}'")
-                print("", "score", "query", sep="\t")
+                print("", "score", "match", sep="\t")
                 for i, result in enumerate(results):
                     print(
                         f"[{i+1}]",
@@ -75,8 +78,8 @@ def main():
                     )
 
             elif action == "list":
-                for i, query in enumerate(model.queries):
-                    print(f"[{i+1}]", query, sep="\t")
+                for i, item in enumerate(engine.queries):
+                    print(f"[{i+1}]", item, sep="\t")
 
             else:
                 print("Unknown command")
@@ -85,7 +88,7 @@ def main():
         print("\nInterrupted.")
 
     finally:
-        save_model(model, model_file)
+        save_engine(engine, engine_file)
 
 
 if __name__ == "__main__":
